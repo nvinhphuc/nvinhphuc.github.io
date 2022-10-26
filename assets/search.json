@@ -1,6 +1,14 @@
 [
   
     {
+      "title"    : "How to export log from Databricks to Splunk using HEC endpoint",
+      "description" : "",
+      "tags"     : "",
+      "url"      : "/databricks-splunk-hec/",
+      "date"     : "2022-10-26 09:29:20 +0700"
+    } ,
+  
+    {
       "title"    : "1st post",
       "description" : "",
       "tags"     : "",

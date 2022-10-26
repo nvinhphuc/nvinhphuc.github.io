@@ -1,1 +1,50 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-US"><generator uri="https://jekyllrb.com/" version="4.1.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en-US" /><updated>2022-10-22T17:04:36+07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Phuc Nguyen’s blog</title><subtitle>A programming blog by Phuc Nguyen &lt;a href=&quot;https://github.com/nvinhphuc&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@github&lt;/a&gt;.</subtitle><author><name>Phuc Nguyen</name><email>your-email@email.com</email></author><entry><title type="html">1st post</title><link href="http://localhost:4000/welcome-to-jekyll/" rel="alternate" type="text/html" title="1st post" /><published>2022-10-22T09:29:20+07:00</published><updated>2022-10-22T09:29:20+07:00</updated><id>http://localhost:4000/welcome-to-jekyll</id><content type="html" xml:base="http://localhost:4000/welcome-to-jekyll/"><![CDATA[<p>First post. This will be a very exciting journey.</p>]]></content><author><name>Phuc Nguyen</name><email>your-email@email.com</email></author><category term="1st" /><category term="intro" /><summary type="html"><![CDATA[First post. This will be a very exciting journey.]]></summary></entry></feed>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-US"><generator uri="https://jekyllrb.com/" version="4.1.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en-US" /><updated>2022-10-26T21:57:13+07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Phuc Nguyen’s blog</title><subtitle>A programming blog by Phuc Nguyen &lt;a href=&quot;https://github.com/nvinhphuc&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@github&lt;/a&gt;.</subtitle><author><name>Phuc Nguyen</name><email>your-email@email.com</email></author><entry><title type="html">How to export log from Databricks to Splunk using HEC endpoint</title><link href="http://localhost:4000/databricks-splunk-hec/" rel="alternate" type="text/html" title="How to export log from Databricks to Splunk using HEC endpoint" /><published>2022-10-26T09:29:20+07:00</published><updated>2022-10-26T09:29:20+07:00</updated><id>http://localhost:4000/databricks-splunk-hec</id><content type="html" xml:base="http://localhost:4000/databricks-splunk-hec/"><![CDATA[<p>Tutorial for pushing Databricks log to Splunk HEC endpoint</p>
+
+<h2 id="configure-hec-endpoint-in-splunk">Configure HEC endpoint in Splunk</h2>
+
+<p>You need to create a HEC endpoint in your Splunk system if you don’t have one. We will not dive into this because there is a lot of materials for this in the Internet already: <a href="https://docs.splunk.com/Documentation/Splunk/9.0.1/Data/UsetheHTTPEventCollector">https://docs.splunk.com/Documentation/Splunk/9.0.1/Data/UsetheHTTPEventCollector</a></p>
+
+<h2 id="upload-splunk-library-javalogging-dependencies-to-databricks">Upload splunk-library-javalogging dependencies to Databricks</h2>
+
+<p>This library <a href="https://github.com/splunk/splunk-library-javalogging">https://github.com/splunk/splunk-library-javalogging</a> provided HttpEventCollectorLog4jAppender for Log4J to push log directly to Splunk HEC endpoint.</p>
+
+<p>Databricks doesn’t have any Java dependencies manager, so in order to install this libraries, we need to download all the dependencies of this lib and install all to Databricks.</p>
+
+<p>To download all the dependencies, use this pom.xml file <a href="https://gist.github.com/nvinhphuc/09f866699bf813ae1ecf610a31ea7a91">https://gist.github.com/nvinhphuc/09f866699bf813ae1ecf610a31ea7a91</a> and use this command:</p>
+
+<p><code class="language-plaintext highlighter-rouge">mvn install dependency:copy-dependencies</code></p>
+
+<p>Then all the jar dependencies will be downloaded into <code class="language-plaintext highlighter-rouge">target/dependencies</code></p>
+
+<p>Compressed all this dependencies into <code class="language-plaintext highlighter-rouge">splunk_dependencies.zip</code></p>
+
+<p><strong><em>LAZY Shortcut</em></strong>: If you are lazy, just grab this <code class="language-plaintext highlighter-rouge">splunk_dependencies.zip</code> in this repo <a href="https://github.com/nvinhphuc/databricks-splunk-hec">https://github.com/nvinhphuc/databricks-splunk-hec</a>.</p>
+
+<p>Upload <code class="language-plaintext highlighter-rouge">splunk_dependencies.zip</code> into Databricks storage at <code class="language-plaintext highlighter-rouge">/FileStore/splunk</code></p>
+
+<h2 id="write-script-to-configure-log4j-of-spark">Write script to configure Log4J of Spark</h2>
+
+<p>In Databricks, Log4J configuration files locate in <code class="language-plaintext highlighter-rouge">/databricks/spark/dbconf/log4j/</code>
+We need to add <code class="language-plaintext highlighter-rouge">SplunkHttp</code> appender to these files and ref this Appender in the loggers.</p>
+
+<p><strong><em>LAZY Shortcut</em></strong>: Download <code class="language-plaintext highlighter-rouge">init_script.sh</code> and <code class="language-plaintext highlighter-rouge">splunk_appender.py</code> from this repo: <a href="https://github.com/nvinhphuc/databricks-splunk-hec">https://github.com/nvinhphuc/databricks-splunk-hec</a></p>
+
+<p>Upload these file into Databricks storage <code class="language-plaintext highlighter-rouge">/FileStore/splunk</code></p>
+
+<h2 id="step-4-config-global-init-script">Step 4: Config global init script</h2>
+
+<p>You need to config Databricks global init script to run the script every time the clusters start to override the log configuration in the cluster.</p>
+
+<p>Navigate to global init scripts in Admin Console.</p>
+
+<p><img src="databricks.png" alt="drawing" width="500" /></p>
+
+<p>Then drag and drop the <code class="language-plaintext highlighter-rouge">init_script.sh</code> file into the Script area. Set a name and enable the script.</p>
+
+<h2 id="step-5-configure-and-restart-cluster">Step 5: Configure and restart cluster</h2>
+
+<p>Set <code class="language-plaintext highlighter-rouge">SPLUNK_HEC_URL</code> and <code class="language-plaintext highlighter-rouge">SPLUNK_HEC_TOKEN</code> environment variables in your cluster.</p>
+
+<p><img src="splunk.png" alt="drawing" width="500" /></p>
+
+<p>Restart your cluster and check your Splunk web to see the log.</p>]]></content><author><name>Phuc Nguyen</name><email>your-email@email.com</email></author><category term="databricks" /><category term="splunk" /><category term="logging" /><category term="hec" /><summary type="html"><![CDATA[Tutorial for pushing Databricks log to Splunk HEC endpoint]]></summary></entry><entry><title type="html">1st post</title><link href="http://localhost:4000/welcome-to-jekyll/" rel="alternate" type="text/html" title="1st post" /><published>2022-10-22T09:29:20+07:00</published><updated>2022-10-22T09:29:20+07:00</updated><id>http://localhost:4000/welcome-to-jekyll</id><content type="html" xml:base="http://localhost:4000/welcome-to-jekyll/"><![CDATA[<p>First post. This will be a very exciting journey.</p>]]></content><author><name>Phuc Nguyen</name><email>your-email@email.com</email></author><category term="1st" /><category term="intro" /><summary type="html"><![CDATA[First post. This will be a very exciting journey.]]></summary></entry></feed>
